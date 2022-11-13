@@ -48,22 +48,59 @@ def login():
             "SELECT emp_id, name, phone_number, date_of_birth, gender, branch_id, dept_id FROM user_details where emp_id=%s and password=%s", (username, password))
         myresult = mycursor.fetchone()
         if myresult != None:
+            user_home(username)
             #call user_pagehome here with uname n pw as parameters. The below code add it to user_view_profile
-            l = []
-            for values in myresult:
-                l.append(values)
+            # l = []
+            # for values in myresult:
+            #     l.append(str(values))
             # attr = ['emp_id', 'name', 'phone_number',
             #         'date_of_birth', 'gender', 'branch_id', 'dept_id']
             # print(tabulate(l, headers=attr, tablefmt="fancy_grid"))
-            print(l[3])
-            input("Press Enter to logout")
-            landing_page()
+            # print(l)
+            # input("Press Enter to logout")
+            # landing_page()
         elif myresult == None:
             print(chalk.blue.bold.underline(
                 "\nEmployee doesn't exist / not registered"))
-            input("Press Enter to continue")
-            landing_page()
+            questions = [
+                        inquirer.List('value',
+                        message='\nDo you want to try logging in again?',
+                        choices=['Yes','No'],
+                        ),
+                ]
+            answer = inquirer.prompt(questions)['value']
+            if(answer=="Yes"):
+                login()
+            elif(answer=="No"):
+                landing_page()
 
+def user_home(username):
+    #get name from username
+    os.system("cls")
+    username=username
+    print(chalk.blue.bold(figlet_format(f"Hello {username}", font="standard")),)
+    questions = [
+                        inquirer.List('value',
+                        message='Enter your choice',
+                        choices=['View profile', 'Change Branch/Department', 'Logout'],
+                        ),
+                ]
+    answer = inquirer.prompt(questions)['value']
+    if(answer=="View profile"):
+        user_profile(username)
+    elif(answer=="Change Branch/Department"):
+        user_change(username)
+    elif(answer=='Logout'):
+        landing_page()
+
+def user_profile(username):
+    print(f"profile of {username}")
+
+def userchange(username):
+    print("Ask preferred branch and then all depts with vacant jobs in that branch")
+    #Ex: enter your req branch : 1. SBM   2. RR     3. DOLLARS COLONY
+    # <user enters SBM>
+    # display all depts in SBM which have vacant jobs
 
 def signup():
     os.system("cls")

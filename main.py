@@ -7,10 +7,11 @@ import os
 from tabulate import tabulate
 import mysql.connector
 import time
+from termcolor import colored
 
 def landing_page():
     os.system("cls")
-    print(chalk.yellow.bold(figlet_format("Helping Hands", font="standard")))
+    print(chalk.yellow.bold(figlet_format("Helping Hands for D Mart", font="standard")))
     questions = [
                         inquirer.List('value',
                         message='Enter your choice',
@@ -34,22 +35,99 @@ def login():
     username = inquirer.text(message="Enter your Username")
     password = inquirer.password(message="Enter your Password")
     #print(pin)
-    mydb = mysql.connector.connect(host="localhost",user="root",database="helping_hands")
+    mydb = mysql.connector.connect(
+        host="localhost",user="root",database="helping_hands")
     mycursor = mydb.cursor()
     mycursor.execute("SELECT * FROM admin where username=%s and password=%s",(username, password))
     myresult = mycursor.fetchone()
     if myresult!=None:
         admin_home()
     elif myresult==None:
-        print("check user")
+        #print("check user")
+        mycursor.execute(
+            "SELECT emp_id, name, phone_number, date_of_birth, gender, branch_id, dept_id FROM user_details where emp_id=%s and password=%s", (username, password))
+        myresult = mycursor.fetchone()
+        if myresult != None:
+            #call user_pagehome here with uname n pw as parameters. The below code add it to user_view_profile
+            l = []
+            for values in myresult:
+                l.append(values)
+            # attr = ['emp_id', 'name', 'phone_number',
+            #         'date_of_birth', 'gender', 'branch_id', 'dept_id']
+            # print(tabulate(l, headers=attr, tablefmt="fancy_grid"))
+            print(l[3])
+            input("Press Enter to logout")
+            landing_page()
+        elif myresult == None:
+            print(chalk.blue.bold.underline(
+                "\nEmployee doesn't exist / not registered"))
+            input("Press Enter to continue")
+            landing_page()
+
 
 def signup():
     os.system("cls")
-    print("cooming up on sunday")
+    #print("coming up on sunday")
+    print(chalk.blue.bold(figlet_format("SIGN UP PAGE", font="standard")))
+    username = inquirer.text(message="Enter your Username/EMPID")
+    mydb = mysql.connector.connect(
+        host="localhost", user="root", database="helping_hands")
+    mycursor = mydb.cursor()
+    mycursor.execute("SELECT * from empid_list where emp_id=%s", (username,))
+    myresult = mycursor.fetchone()
+    if myresult == None:
+        print(chalk.blue.bold.underline("\nEmployee with the entered username is not a part of our company"))
+        questions = [
+                        inquirer.List('value',
+                        message='\nDo you want to try signing up again?',
+                        choices=['Yes','No'],
+                        ),
+                ]
+        answer = inquirer.prompt(questions)['value']
+        if(answer=="Yes"):
+            signup()
+        elif(answer=="No"):
+            landing_page()
+    elif myresult!=None:
+        mycursor.execute("SELECT * FROM user_details where emp_id=%s", (username,))
+        myresult = mycursor.fetchone()
+        if myresult != None:
+            print(chalk.blue.bold.underline("\nUsername already registered"))
+            questions = [
+                        inquirer.List('value',
+                        message='\nDo you want to try signing up again?',
+                        choices=['Yes','No'],
+                        ),
+                ]
+            answer = inquirer.prompt(questions)['value']
+            if(answer=="Yes"):
+                signup()
+            elif(answer=="No"):
+                landing_page()
+        else:
+            name = input("Name : ")
+            dob = input("Date of Birth(yyyy-mm-dd) : ")
+            phone_number = input("Phone number : ")
+            #id = input("empid/username")
+            password = input("Password : ")
+            gender = input("Gender")   
+            curr_branch = input("Current branch id id you are working for : ")
+            curr_dept = input("Current department id you are working for : ")
+            mycursor.execute("INSERT INTO user_details VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                            (username, name, phone_number, dob, password, gender, curr_branch, curr_dept))
+            mydb.commit()
+            print(chalk.blue.bold.underline("\nUsername successfully registered"))
+            input("Press Enter to continue")
+            landing_page()
 
 def aboutus():
     os.system("cls")
-    print("abbu bucker shd write")
+    print(chalk.red.bold(figlet_format("About Us", font="standard")))
+    ENIGMA = colored("ENIGMA", "green", "on_grey")
+    #print("-> Helping Hands is a distributed software developed to maintain the details of employees working in any organization.\n-> This was built by Team", end=" ")
+    print(f"-> Helping Hands is a distributed software developed to maintain the details of employees working in any organization.\n\n-> This was built by Team {ENIGMA} under the guidance of Anand sir.\n\n-> This software has been developed to override the problems prevailing in the practicing manual system.\n\n-> Developed a well designed database to store the information.\n\n-> It aims to help both admin and employees of  a particular organization.\n\n-> The admin can perform various operations such as adding a department,deleting a department etc.\n\n-> It also helps employee to choose their preferred branch and department.\n\n-> We have built a very user friendly application that requires minimal training.")
+    input("\n\n\tPress Enter to go back.....")
+    landing_page()
 
 def admin_home():
     os.system("cls")
@@ -57,7 +135,7 @@ def admin_home():
     questions = [
                         inquirer.List('value',
                         message='Enter your choice',
-                        choices=['Add Employee', 'View job vacancies', 'Add branch','Add Department','Update jobs'],
+                        choices=['Add Employee', 'View job vacancies', 'Add branch','Add Department','Update jobs','Logout'],
                         ),
                 ]
     answer = inquirer.prompt(questions)['value']
@@ -71,6 +149,8 @@ def admin_home():
         view_jobs()
     elif(answer=='Update jobs'):
         update_jobs()
+    elif(answer=='Logout'):
+        landing_page()
     
 
 def admin_add_employee():

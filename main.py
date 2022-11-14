@@ -26,12 +26,50 @@ def landing_page():
         signup()
     elif (answer == 'About Us'):
         aboutus()
-    elif (answer == "Change Dept/Branch"):
-        user_dept_branch_change()
-    elif (answer == "Forgot Password"):
-        user_forgot_password()
+#     elif (answer == "Change Dept/Branch"):
+#         user_dept_branch_change()
+#     elif (answer == "Forgot Password"):
+#         user_forgot_password()
     else:
         exit()
+        
+        
+def view_profile(username):
+    mydb = mysql.connector.connect(
+        host="localhost", user="root", database="helping_hands")
+    mycursor = mydb.cursor()
+    mycursor.execute(
+        "SELECT * FROM admin where username=%s", (username,))
+    myresult = mycursor.fetchAll()
+    l = []
+    for values in myresult:
+        l.append(values)
+        attr = ['emp_id', 'name', 'phone_number',
+                    'date_of_birth', 'gender', 'branch_id', 'dept_id']
+    print(tabulate(l, headers=attr, tablefmt="fancy_grid"))
+    input("Press Enter to navigate to home page")
+    userhome(username)
+        
+        
+def userhome(username):
+    os.system("cls")
+    username=username
+    print(chalk.blue.bold(figlet_format(f"Hello {username}", font="standard")),)
+    questions = [
+                        inquirer.List('value',
+                        message='Enter your choice',
+                        choices=['View profile', 'Change Branch/Department','Forgot Password', 'Logout'],
+                        ),
+                ]
+    answer = inquirer.prompt(questions)['value']
+    if(answer=="View profile"):
+        view_profile(username)
+    elif(answer=="Change Branch/Department"):
+        user_dept_branch_change(username)
+    elif(answer=='Forgot Password'):
+        
+    elif(answer=='Logout'):
+        landing_page()
 
 
 def login():
@@ -362,11 +400,11 @@ def update_jobs():
         admin_home()
 
 
-def user_dept_branch_change():
+def user_dept_branch_change(username):
     os.system("cls")
     print(chalk.blue.bold(figlet_format("CHANGE DEPT OR BRANCH", font="standard")))
-    username = inquirer.text(message="Enter your Username/emp_id")
-    password = inquirer.password(message="Enter your Password")
+#     username = inquirer.text(message="Enter your Username/emp_id")
+#     password = inquirer.password(message="Enter your Password")
     mydb = mysql.connector.connect(
         host="localhost", user="root", database="helping_hands")
     mycursor = mydb.cursor()
@@ -469,12 +507,12 @@ def user_dept_branch_change():
     elif (myresult == None):
         print("Employee doesnt exist.First get yourself registered")
 
-def user_forgot_password():
+def user_forgot_password(username):
     os.system("cls")
     # welcome message
     print(chalk.blue.bold(figlet_format("FORGOT PASSSWORD", font="standard")))
     name = inquirer.text(message="Enter your name")
-    emp_id = inquirer.password(message="Enter your EMP_ID")
+#     emp_id = inquirer.password(message="Enter your EMP_ID")
     mydb = mysql.connector.connect(
         host="localhost", user="root", database="helping_hands")
     mycursor = mydb.cursor()

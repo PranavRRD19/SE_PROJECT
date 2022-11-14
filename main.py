@@ -47,7 +47,7 @@ def login():
     mycursor = mydb.cursor()
     mycursor.execute(
         "SELECT * FROM admin where username=%s and password=%s", (username, password))
-    myresult = mycursor.fetchone()
+    myresult = mycursor.fetchAll()
     if myresult != None:
         admin_home()
     elif myresult == None:

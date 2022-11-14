@@ -1,7 +1,5 @@
 import os
 import sys
-import time
-
 import inquirer
 import mysql.connector
 import requests
@@ -18,7 +16,7 @@ def landing_page():
         inquirer.List('value',
                       message='Enter your choice',
                       choices=['User Login', 'User Signup',
-                               'About Us', 'Change Dept/Branch', 'Exit'],
+                               'About Us', 'Change Dept/Branch','Forgot Password' ,'Exit'],
                       ),
     ]
     answer = inquirer.prompt(questions)['value']
@@ -30,44 +28,12 @@ def landing_page():
         aboutus()
     elif (answer == "Change Dept/Branch"):
         user_dept_branch_change()
+    elif (answer == "Forgot Password"):
+        user_forgot_password()
     else:
         exit()
-       
-def view_profile(username):
-    mydb = mysql.connector.connect(
-        host="localhost", user="root", database="helping_hands")
-    mycursor = mydb.cursor()
-    mycursor.execute(
-        "SELECT * FROM admin where username=%s", (username,))
-    myresult = mycursor.fetchAll()
-    l = []
-    for values in myresult:
-        l.append(values)
-        attr = ['emp_id', 'name', 'phone_number',
-                    'date_of_birth', 'gender', 'branch_id', 'dept_id']
-    print(tabulate(l, headers=attr, tablefmt="fancy_grid"))
-    input("Press Enter to navigate to home page")
-    userhome(username)
-    
 
-def userhome(username):
-    os.system("cls")
-    username=username
-    print(chalk.blue.bold(figlet_format(f"Hello {username}", font="standard")),)
-    questions = [
-                        inquirer.List('value',
-                        message='Enter your choice',
-                        choices=['View profile', 'Change Branch/Department', 'Logout'],
-                        ),
-                ]
-    answer = inquirer.prompt(questions)['value']
-    if(answer=="View profile"):
-        view_profile(username)
-    elif(answer=="Change Branch/Department"):
-        user_dept_branch_change(username)
-    elif(answer=='Logout'):
-        landing_page()
-    
+
 def login():
     """ Display welcome message followed by a login prompt. """
     os.system("cls")
@@ -81,41 +47,39 @@ def login():
     mycursor = mydb.cursor()
     mycursor.execute(
         "SELECT * FROM admin where username=%s and password=%s", (username, password))
-    myresult = mycursor.fetchAll()
+    myresult = mycursor.fetchone()
     if myresult != None:
         admin_home()
     elif myresult == None:
-        print("check user")
+        #print("check user")
         mycursor.execute(
-            "SELECT emp_id, name, phone_number, date_of_birth, gender, branch_id, dept_id FROM user_details where emp_id=%s and password=%s", (username, password))
-        myresult = mycursor.fetchAll()
+            #"SELECT emp_id, name, phone_number, date_of_birth, gender, branch_id, dept_id FROM user_details where emp_id=%s and password=%s", (username, password))
+            "SELECT * FROM user_details where emp_id=%s and password=%s", (username, password))
+        myresult = mycursor.fetchall()
         if myresult != None:
             # call user_pagehome here with uname n pw as parameters. The below code add it to user_view_profile
-            # l = []
-            # for values in myresult:
-            #    l.append(values)
-            # attr = ['emp_id', 'name', 'phone_number',
-            #         'date_of_birth', 'gender', 'branch_id', 'dept_id']
-            # print(tabulate(l, headers=attr, tablefmt="fancy_grid"))
-            # print(l[3])
-            # input("Press Enter to logout")
-            # landing_page()
-#             user_home(username)
-#             l = []
-#             for values in myresult:
-#                 l.append(values)
-#             attr = ['emp_id', 'name', 'phone_number',
-#                     'date_of_birth', 'gender', 'branch_id', 'dept_id']
-#             print(tabulate(l, headers=attr, tablefmt="fancy_grid"))
-#             input("Press Enter to logout")
-#             landing_page()
+            #for x in myresult:
+            #    print(x)
+            l = []
+            for x in myresult:
+                l.append(x)
+            attr = ['emp_id', 'name', 'phone_number','date_of_birth','password','gender', 'branch_id', 'dept_id','security_question' ,'security_answer']
+            print(tabulate(l, headers=attr, tablefmt="fancy_grid"))
+            #print(l[3])
+            '''
+            input("Press Enter to logout")
+            landing_page()
+            '''
+            l = []
+            for values in myresult:
+                l.append(values)
+            input("Press Enter to logout")
+            landing_page()
         elif myresult == None:
             print(chalk.blue.bold.underline(
                 "\nEmployee doesn't exist / not registered"))
             input("Press Enter to continue")
             landing_page()
-         
-       
 
 
 def signup():
@@ -142,15 +106,17 @@ def signup():
         landing_page()
     else:
         name = input("Name: ")
-        dob = input("Date of Birth(format)")
-        phone_number = input("Phone number")
-        id = input("empid/username")
-        password = input("Password")
-        gender = input("Gender")
-        curr_branch = input("Current branch id id you are working for")
-        curr_dept = input("Current department id you are working for")
-        mycursor.execute("INSERT INTO user_details VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
-                         (id, name, phone_number, dob, password, gender, curr_branch, curr_dept))
+        dob = input("Date of Birth(format) ")
+        phone_number = input("Phone number ")
+        id = input("empid/username ")
+        password = input("Password ")
+        gender = input("Gender ")
+        curr_branch = input("Current branch id you are working for ")
+        curr_dept = input("Current department id you are working for ")
+        security_question = input("Enter your own SECURITY QUESTION.[Would be required in case you forget the password].Enter such a question whose answer is very well known to you. ")
+        security_answer = input("Enter answer for your SECURITY QUESTION.Make sure you remember this. ")
+        mycursor.execute("INSERT INTO user_details VALUES (%s, %s, %s, %s, %s, %s, %s, %s,%s,%s)",
+                         (id, name, phone_number, dob, password, gender, curr_branch, curr_dept,security_question,security_answer))
         mydb.commit()
         print(chalk.blue.bold.underline("\nUsername successfully registered"))
         input("Press Enter to continue")
@@ -396,11 +362,11 @@ def update_jobs():
         admin_home()
 
 
-def user_dept_branch_change(username):
+def user_dept_branch_change():
     os.system("cls")
     print(chalk.blue.bold(figlet_format("CHANGE DEPT OR BRANCH", font="standard")))
-#     username = inquirer.text(message="Enter your Username/emp_id")
-#     password = inquirer.password(message="Enter your Password")
+    username = inquirer.text(message="Enter your Username/emp_id")
+    password = inquirer.password(message="Enter your Password")
     mydb = mysql.connector.connect(
         host="localhost", user="root", database="helping_hands")
     mycursor = mydb.cursor()
@@ -502,6 +468,59 @@ def user_dept_branch_change(username):
 
     elif (myresult == None):
         print("Employee doesnt exist.First get yourself registered")
+
+def user_forgot_password():
+    os.system("cls")
+    # welcome message
+    print(chalk.blue.bold(figlet_format("FORGOT PASSSWORD", font="standard")))
+    name = inquirer.text(message="Enter your name")
+    emp_id = inquirer.password(message="Enter your EMP_ID")
+    mydb = mysql.connector.connect(
+        host="localhost", user="root", database="helping_hands")
+    mycursor = mydb.cursor()
+    mycursor.execute(
+        "SELECT security_question FROM user_details where emp_id=%s AND name=%s", (emp_id,name))
+    myresult = mycursor.fetchone()
+    print("The security question you had set was: ",myresult[0])
+    print("Recall the answer you had set for the above question\n")
+    security_answer = inquirer.text(message="Enter answer for your security question")
+    mycursor.execute(
+        "SELECT name,emp_id,security_answer FROM user_details where emp_id=%s AND name=%s AND security_answer=%s", (emp_id,name,security_answer))
+    result = mycursor.fetchone()
+    print(result)
+    if(result!=None):
+        print("Requesting to Change password")
+        text="Verifying_Data"
+        progress_bar(text)
+        print("\n", end="\n")
+        print("DATA SUCCESSFULLY VERIFIED")
+        new_password = input("Enter your new password\n")
+        mycursor.execute(
+        "UPDATE user_details SET password=%s where emp_id=%s AND name=%s AND security_answer=%s", (new_password,emp_id,name,security_answer))
+        text_ = "Updating Password"
+        progress_bar(text_)
+        print("\n", end="\n")
+        print("PASWWORD SUCCESFULLY CHANGED AND UPDATED IN DATABASE\n")
+        mydb.commit()
+
+    elif(result==None):
+        print("The credentials you have entered is incorrect.Try again")
+        user_forgot_password()
+
+
+def progress_bar(text):
+    import time
+    for j in range(1,101):
+            time.sleep(.02)
+     
+            downloading = colored(text, 'green', 'on_grey', attrs=['reverse'])
+            percentage = colored(f"[{j}%]", 'blue')
+            bar = colored('|' * j, "red")
+            color = downloading + percentage + bar
+     
+            print(color, end="\r")
+    
+
 
 if __name__ == "__main__":
     landing_page()

@@ -64,7 +64,7 @@ def userhome(username):
     if(answer=="View profile"):
         view_profile(username)
     elif(answer=="Change Branch/Department"):
-        user_change(username)
+        user_dept_branch_change(username)
     elif(answer=='Logout'):
         landing_page()
     
@@ -396,11 +396,11 @@ def update_jobs():
         admin_home()
 
 
-def user_dept_branch_change():
+def user_dept_branch_change(username):
     os.system("cls")
     print(chalk.blue.bold(figlet_format("CHANGE DEPT OR BRANCH", font="standard")))
-    username = inquirer.text(message="Enter your Username/emp_id")
-    password = inquirer.password(message="Enter your Password")
+#     username = inquirer.text(message="Enter your Username/emp_id")
+#     password = inquirer.password(message="Enter your Password")
     mydb = mysql.connector.connect(
         host="localhost", user="root", database="helping_hands")
     mycursor = mydb.cursor()

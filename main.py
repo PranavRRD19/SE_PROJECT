@@ -57,23 +57,23 @@ def login():
         myresult = mycursor.fetchone()
         if myresult != None:
             # call user_pagehome here with uname n pw as parameters. The below code add it to user_view_profile
-            l = []
-            for values in myresult:
-                l.append(values)
+            # l = []
+            # for values in myresult:
+            #    l.append(values)
             # attr = ['emp_id', 'name', 'phone_number',
             #         'date_of_birth', 'gender', 'branch_id', 'dept_id']
             # print(tabulate(l, headers=attr, tablefmt="fancy_grid"))
-            print(l[3])
-            input("Press Enter to logout")
-            landing_page()
-            '''l = []
+            # print(l[3])
+            # input("Press Enter to logout")
+            # landing_page()
+            l = []
             for values in myresult:
                 l.append(values)
             attr = ['emp_id', 'name', 'phone_number',
                     'date_of_birth', 'gender', 'branch_id', 'dept_id']
             print(tabulate(l, headers=attr, tablefmt="fancy_grid"))
             input("Press Enter to logout")
-            landing_page()'''
+            landing_page()
         elif myresult == None:
             print(chalk.blue.bold.underline(
                 "\nEmployee doesn't exist / not registered"))

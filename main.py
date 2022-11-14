@@ -85,39 +85,34 @@ def login():
     mycursor = mydb.cursor()
     mycursor.execute(
         "SELECT * FROM admin where username=%s and password=%s", (username, password))
-    myresult = mycursor.fetchone()
+    myresult = mycursor.fetchAll()
     if myresult != None:
         admin_home()
     elif myresult == None:
-        #print("check user")
+        print("check user")
         mycursor.execute(
-            #"SELECT emp_id, name, phone_number, date_of_birth, gender, branch_id, dept_id FROM user_details where emp_id=%s and password=%s", (username, password))
-            "SELECT * FROM user_details where emp_id=%s and password=%s", (username, password))
-        myresult = mycursor.fetchall()
+            "SELECT emp_id, name, phone_number, date_of_birth, gender, branch_id, dept_id FROM user_details where emp_id=%s and password=%s", (username, password))
+        myresult = mycursor.fetchAll()
         if myresult != None:
             # call user_pagehome here with uname n pw as parameters. The below code add it to user_view_profile
-            #for x in myresult:
-            #    print(x)
-            l = []
-            for x in myresult:
-                l.append(x)
-            attr = ['emp_id', 'name', 'phone_number','date_of_birth','password','gender', 'branch_id', 'dept_id','security_question' ,'security_answer']
-            print(tabulate(l, headers=attr, tablefmt="fancy_grid"))
-            #print(l[3])
-            '''
-            input("Press Enter to logout")
-            landing_page()
-            '''
-            l = []
-            for values in myresult:
-                l.append(values)
-            input("Press Enter to logout")
-            landing_page()
-        elif myresult == None:
-            print(chalk.blue.bold.underline(
-                "\nEmployee doesn't exist / not registered"))
-            input("Press Enter to continue")
-            landing_page()
+            # l = []
+            # for values in myresult:
+            #    l.append(values)
+            # attr = ['emp_id', 'name', 'phone_number',
+            #         'date_of_birth', 'gender', 'branch_id', 'dept_id']
+            # print(tabulate(l, headers=attr, tablefmt="fancy_grid"))
+            # print(l[3])
+            # input("Press Enter to logout")
+            # landing_page()
+#             user_home(username)
+#             l = []
+#             for values in myresult:
+#                 l.append(values)
+#             attr = ['emp_id', 'name', 'phone_number',
+#                     'date_of_birth', 'gender', 'branch_id', 'dept_id']
+#             print(tabulate(l, headers=attr, tablefmt="fancy_grid"))
+#             input("Press Enter to logout")
+#             landing_page()
 
 
 def signup():

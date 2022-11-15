@@ -15,7 +15,7 @@ def landing_page():
     questions = [
                         inquirer.List('value',
                         message='Enter your choice',
-                        choices=['User Login', 'User Signup', 'About Us','Exit'],
+                        choices=['User Login', 'User Signup', 'About Us','Forgot Password','Exit'],
                         ),
                 ]
     answer = inquirer.prompt(questions)['value']
@@ -25,8 +25,63 @@ def landing_page():
         signup()
     elif(answer=='About Us'):
         aboutus()
+    elif(answer=='Forgot Password'):
+        user_forgot_password()
     else:
         exit()
+
+def user_forgot_password(username):
+    os.system("cls")
+    # welcome message
+    print(chalk.blue.bold(figlet_format("FORGOT PASSSWORD", font="standard")))
+    name = inquirer.text(message="Enter your name")
+#     emp_id = inquirer.password(message="Enter your EMP_ID")
+    mydb = mysql.connector.connect(
+        host="localhost", user="root", database="helping_hands")
+    mycursor = mydb.cursor()
+    mycursor.execute(
+        "SELECT security_question FROM user_details where emp_id=%s AND name=%s", (emp_id,name))
+    myresult = mycursor.fetchone()
+    print("The security question you had set was: ",myresult[0])
+    print("Recall the answer you had set for the above question\n")
+    security_answer = inquirer.text(message="Enter answer for your security question")
+    mycursor.execute(
+        "SELECT name,emp_id,security_answer FROM user_details where emp_id=%s AND name=%s AND security_answer=%s", (emp_id,name,security_answer))
+    result = mycursor.fetchone()
+    print(result)
+    if(result!=None):
+        print("Requesting to Change password")
+        text="Verifying_Data"
+        progress_bar(text)
+        print("\n", end="\n")
+        print("DATA SUCCESSFULLY VERIFIED")
+        new_password = input("Enter your new password\n")
+        mycursor.execute(
+        "UPDATE user_details SET password=%s where emp_id=%s AND name=%s AND security_answer=%s", (new_password,emp_id,name,security_answer))
+        text_ = "Updating Password"
+        progress_bar(text_)
+        print("\n", end="\n")
+        print("PASWWORD SUCCESFULLY CHANGED AND UPDATED IN DATABASE\n")
+        mydb.commit()
+
+    elif(result==None):
+        print("The credentials you have entered is incorrect.Try again")
+        user_forgot_password()
+
+
+def progress_bar(text):
+    import time
+    for j in range(1,101):
+            time.sleep(.02)
+     
+            downloading = colored(text, 'green', 'on_grey', attrs=['reverse'])
+            percentage = colored(f"[{j}%]", 'blue')
+            bar = colored('|' * j, "red")
+            color = downloading + percentage + bar
+     
+            print(color, end="\r")
+
+
 
 def login():
     """ Display welcome message followed by a login prompt. """
@@ -36,7 +91,7 @@ def login():
     password = inquirer.password(message="Enter your Password")
     #print(pin)
     mydb = mysql.connector.connect(
-        host="localhost",user="root",database="helping_hands")
+        host="localhost",user="root",database="helping_hands1")
     mycursor = mydb.cursor()
     mycursor.execute("SELECT * FROM admin where username=%s and password=%s",(username, password))
     myresult = mycursor.fetchone()
@@ -49,16 +104,6 @@ def login():
         myresult = mycursor.fetchone()
         if myresult != None:
             user_home(username)
-            #call user_pagehome here with uname n pw as parameters. The below code add it to user_view_profile
-            # l = []
-            # for values in myresult:
-            #     l.append(str(values))
-            # attr = ['emp_id', 'name', 'phone_number',
-            #         'date_of_birth', 'gender', 'branch_id', 'dept_id']
-            # print(tabulate(l, headers=attr, tablefmt="fancy_grid"))
-            # print(l)
-            # input("Press Enter to logout")
-            # landing_page()
         elif myresult == None:
             print(chalk.blue.bold.underline(
                 "\nEmployee doesn't exist / not registered"))
@@ -89,18 +134,129 @@ def user_home(username):
     if(answer=="View profile"):
         user_profile(username)
     elif(answer=="Change Branch/Department"):
-        user_change(username)
+        user_dept_branch_change(username)
     elif(answer=='Logout'):
         landing_page()
 
 def user_profile(username):
     print(f"profile of {username}")
+    mydb = mysql.connector.connect(
+        host="localhost",user="root",database="helping_hands1")
+    mycursor = mydb.cursor()
+    mycursor.execute(
+        "SELECT emp_id, name, phone_number, date_of_birth, gender, branch_id, dept_id FROM user_details where emp_id=%s",(username,))
+    myresult = mycursor.fetchall()  
+    l=[]
+    for values in myresult:
+            print("Employee id : ",emp_id)
+            print("Name : ",name)
+            print("Phone number : ",phone_number)
+            print("Gender : ",gender)
+            print("Date of Birth : ",date_of_birth)
+            print("Branch id : ",branch_id)
+            print("Department id : ",dept_id)   
 
-def userchange(username):
-    print("Ask preferred branch and then all depts with vacant jobs in that branch")
-    #Ex: enter your req branch : 1. SBM   2. RR     3. DOLLARS COLONY
-    # <user enters SBM>
-    # display all depts in SBM which have vacant jobs
+            input("\n\n\tPress Enter to go back.....")
+            user_home(username)
+
+def user_dept_branch_change(username):
+    os.system("cls")
+    print(chalk.blue.bold(figlet_format("CHANGE DEPT OR BRANCH", font="standard")))
+        #########################################################
+    def view_br_vac():
+            os.system("cls")
+            print(chalk.red.bold.underline(
+            "\n\t------------------------------ JOB VACANCY AVAILABLE IN THESE BRANCHES------------------------------\n"))
+            mydb = mysql.connector.connect(
+            host="localhost", user="root", database="helping_hands1")
+            mycursor = mydb.cursor()
+            l = list()
+            mycursor.execute(
+            "SELECT DISTINCT b.branch_name,b.branch_id FROM branch as b inner join department as d on b.branch_id = d.branch_id")
+            myresult = mycursor.fetchall()
+            for x in myresult:
+                l.append(list(x))
+            head = ["Branch name", "Branch id"]
+            print(tabulate(l, headers=head, tablefmt="fancy_grid"))
+        ################################################################
+    def view_dep_vac(new_branch_id):
+            #os.system("cls")
+            print(chalk.red.bold.underline(
+            "\n\t------------------------------ JOB VACANCY AVAILABLE IN SELECTED BRANCH------------------------------\n"))
+            mydb = mysql.connector.connect(
+            host="localhost", user="root", database="helping_hands1")
+            mycursor = mydb.cursor()
+            l = list()
+            mycursor.execute(
+            "SELECT b.branch_name,b.branch_id, d.dept_name, d.dept_id, d.total_jobs, d.vacant_jobs FROM branch as b inner join department as d on b.branch_id = d.branch_id WHERE b.branch_id=%s AND d.vacant_jobs > 0",(new_branch_id,))
+            myresult = mycursor.fetchall()
+            for x in myresult:
+                l.append(list(x))
+            head = ["Branch name", "Branch id", "Deaprtment name",
+            "Department id", "Total jobs", "Vacant jobs"]
+            print(tabulate(l, headers=head, tablefmt="fancy_grid"))
+            #return new_dept_id
+        #####################################################################
+
+    def vac_jobs(new_dept_id,new_branch_id,current_branch_id,current_dept_id):
+            mycursor.execute(
+                    "SELECT vacant_jobs FROM department WHERE branch_id = %s AND dept_id = %s", (new_branch_id, new_dept_id))
+            new_result = mycursor.fetchone()
+            c_a = int(new_result[0])
+            minim = 1
+            maxim = 0
+            if (c_a < minim):
+                print(
+                    "We cannot allot you the selected branch and department since there is no vacany.\n")
+                print(
+                    "Either Choose different department in same branch or Choose different branch\n")
+                print("Refer to the JOB VACANCIES TABLE displayed above")
+                vac_jobs()
+            elif (c_a > maxim):
+                #n_b_i = int(new_branch_id[0])
+                #n_d_i = int(new_dept_id[0])
+                mycursor.execute("UPDATE user_details SET branch_id = %s, dept_id = %s WHERE emp_id = %s", (
+                    new_branch_id, new_dept_id, username))
+                mycursor.execute(
+                    "SELECT vacant_jobs FROM department WHERE branch_id = %s AND dept_id = %s", (new_branch_id, new_dept_id))
+                new_result = mycursor.fetchone()
+                n_r = int(new_result[0])
+                print("Congratulations!\n",
+                      "Admin has changed your branch and department as requested\n")
+                mycursor.execute("UPDATE department SET vacant_jobs = vacant_jobs-1 WHERE branch_id = %s AND dept_id=%s", (
+                    new_branch_id, new_dept_id))
+                print("CBI",current_branch_id)
+                print("CDI",current_dept_id)
+                print("NDI",new_dept_id)
+                print("NBI",new_branch_id)
+                mycursor.execute("UPDATE department SET vacant_jobs = vacant_jobs+1 WHERE branch_id = %s AND dept_id=%s", (
+                    current_branch_id[0], current_dept_id[0]))
+                mydb.commit()
+                print("DB UPDATED!!!")
+        #########################################################################
+        
+    view_br_vac()
+    print("\n")
+    #newcursor = mydb.cursor()
+    mydb = mysql.connector.connect(
+            host="localhost", user="root", database="helping_hands1")
+    mycursor = mydb.cursor()
+    mycursor.execute(
+            "SELECT branch_id FROM user_details where emp_id=%s", (username, ))
+    current_branch_id = mycursor.fetchone()
+    mycursor.execute(
+            "SELECT dept_id FROM user_details where emp_id=%s", (username, ))
+    current_dept_id = mycursor.fetchone()
+    print("Current Branch you are working in is:", current_branch_id)
+    print("Current Department you are working in is:", current_dept_id)
+    #vac_jobs()
+    new_branch_id = inquirer.text(
+                message="Enter the branch_id you want to work in")
+    view_dep_vac(new_branch_id)
+    new_dept_id = inquirer.text(
+            message="Enter the dept_id you want to work in")
+    vac_jobs(new_dept_id,new_branch_id,current_branch_id,current_dept_id)
+
 
 def signup():
     os.system("cls")
@@ -108,7 +264,7 @@ def signup():
     print(chalk.blue.bold(figlet_format("SIGN UP PAGE", font="standard")))
     username = inquirer.text(message="Enter your Username/EMPID")
     mydb = mysql.connector.connect(
-        host="localhost", user="root", database="helping_hands")
+        host="localhost", user="root", database="helping_hands1")
     mycursor = mydb.cursor()
     mycursor.execute("SELECT * from empid_list where emp_id=%s", (username,))
     myresult = mycursor.fetchone()
@@ -153,6 +309,7 @@ def signup():
             mycursor.execute("INSERT INTO user_details VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
                             (username, name, phone_number, dob, password, gender, curr_branch, curr_dept))
             mydb.commit()
+            # here, reduce number of vacant jobs by 1 for the entered branch and department
             print(chalk.blue.bold.underline("\nUsername successfully registered"))
             input("Press Enter to continue")
             landing_page()
@@ -198,7 +355,7 @@ def admin_add_employee():
     print(chalk.green.bold.underline("--------------ADMIN ADD EMPLOYEE--------------"))
     n=int(input("\nEnter the number of employees you want to add : "))
     for i in range(n):
-        mydb = mysql.connector.connect(host="localhost",user="root",database="helping_hands")
+        mydb = mysql.connector.connect(host="localhost",user="root",database="helping_hands1")
         mycursor = mydb.cursor()
         empid=input("\nEnter the employee id : ")
         mycursor.execute("SELECT * FROM empid_list where emp_id=%s",(empid,))
@@ -220,7 +377,7 @@ def admin_add_branch():
     count=0
     #print(chalk.yellow.bold(figlet_format("ADMIN ADD", font="standard")))
     print(chalk.green.bold.underline("--------------ADMIN ADD BRANCH--------------"))
-    mydb = mysql.connector.connect(host="localhost",user="root",database="helping_hands")
+    mydb = mysql.connector.connect(host="localhost",user="root",database="helping_hands1")
     mycursor = mydb.cursor()
     branch_name=input("Enter Branch name : ")
     branch_id=input("\nEnter the Branch id : ")
@@ -262,7 +419,7 @@ def admin_add_department():
     os.system("cls")
     count=0
     print(chalk.red.bold.underline("--------------ADMIN ADD DEPARTMENT--------------"))
-    mydb = mysql.connector.connect(host="localhost",user="root",database="helping_hands")
+    mydb = mysql.connector.connect(host="localhost",user="root",database="helping_hands1")
     mycursor = mydb.cursor()
     branch_id=input("\nEnter the Branch id : ")
     mycursor.execute("SELECT * FROM branch where branch_id=%s",(branch_id,))
@@ -306,7 +463,7 @@ def admin_add_department():
 def helper_view_jobs():
     os.system("cls")
     print(chalk.red.bold.underline("\n\t------------------------------VIEW JOB VACANCIES------------------------------\n"))
-    mydb = mysql.connector.connect(host="localhost",user="root",database="helping_hands")
+    mydb = mysql.connector.connect(host="localhost",user="root",database="helping_hands1")
     mycursor = mydb.cursor()    
     l=list()
     mycursor.execute("SELECT b.branch_name,b.branch_id, d.dept_name, d.dept_id, d.total_jobs, d.vacant_jobs FROM branch as b inner join department as d on b.branch_id = d.branch_id")
@@ -326,7 +483,7 @@ def update_jobs():
     print("\n")
     print(chalk.blue.bold.underline("\n---------------------------JOB UPDATION---------------------------\n"))
     print("Check the above table to update number of jobs\n")
-    mydb = mysql.connector.connect(host="localhost",user="root",database="helping_hands")
+    mydb = mysql.connector.connect(host="localhost",user="root",database="helping_hands1")
     mycursor = mydb.cursor()
     branch_id=input("\nEnter the Branch id : ")
     dept_id=input("\nEnter the department id : ")

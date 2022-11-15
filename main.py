@@ -28,8 +28,8 @@ def landing_page():
         aboutus()
 #     elif (answer == "Change Dept/Branch"):
 #         user_dept_branch_change()
-#     elif (answer == "Forgot Password"):
-#         user_forgot_password()
+    elif (answer == "Forgot Password"):
+        user_forgot_password()
     else:
         exit()
         
@@ -66,8 +66,6 @@ def userhome(username):
         view_profile(username)
     elif(answer=="Change Branch/Department"):
         user_dept_branch_change(username)
-    elif(answer=='Forgot Password'):
-        
     elif(answer=='Logout'):
         landing_page()
 

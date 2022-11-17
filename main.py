@@ -26,29 +26,52 @@ def landing_page():
     elif(answer=='About Us'):
         aboutus()
     elif(answer=='Forgot Password'):
-        user_forgot_password()
+        user_forgot_helper()
     else:
         exit()
 
-def user_forgot_password(username):
+def user_forgot_helper():
     os.system("cls")
-    # welcome message
-    print(chalk.blue.bold(figlet_format("FORGOT PASSSWORD", font="standard")))
-    name = inquirer.text(message="Enter your name")
-#     emp_id = inquirer.password(message="Enter your EMP_ID")
+    print(chalk.red.bold.underline(
+            "\n\t------------------------------ FORGOT PASSWORD------------------------------\n"))
+    emp_id = inquirer.text(message="Enter your EMP_ID")
     mydb = mysql.connector.connect(
-        host="localhost", user="root", database="helping_hands")
+        host="localhost", user="root", database="helping_hands1")
     mycursor = mydb.cursor()
     mycursor.execute(
-        "SELECT security_question FROM user_details where emp_id=%s AND name=%s", (emp_id,name))
+        "SELECT * FROM user_details where emp_id=%s", (emp_id,))
+    myresult = mycursor.fetchone()
+    if myresult!=None:
+        user_forgot_password(myresult[0])
+    else:
+        print("The entered username/empid does not exist\n")
+        questions = [
+                        inquirer.List('value',
+                        message='\nDo you want to try logging in again?',
+                        choices=['Yes','No'],
+                        ),
+                ]
+        answer = inquirer.prompt(questions)['value']
+        if(answer=="Yes"):
+                user_forgot_helper()
+        elif(answer=="No"):
+            landing_page()
+
+
+def user_forgot_password(username):
+    mydb = mysql.connector.connect(
+        host="localhost", user="root", database="helping_hands1")
+    mycursor = mydb.cursor()
+    mycursor.execute(
+        "SELECT security_question FROM user_details where emp_id=%s", (username,))
     myresult = mycursor.fetchone()
     print("The security question you had set was: ",myresult[0])
-    print("Recall the answer you had set for the above question\n")
+    print("\nRecall the answer you had set for the above question\n")
     security_answer = inquirer.text(message="Enter answer for your security question")
     mycursor.execute(
-        "SELECT name,emp_id,security_answer FROM user_details where emp_id=%s AND name=%s AND security_answer=%s", (emp_id,name,security_answer))
+        "SELECT name,emp_id,security_answer FROM user_details where emp_id=%s AND security_answer=%s", (username,security_answer))
     result = mycursor.fetchone()
-    print(result)
+    # print("\n")
     if(result!=None):
         print("Requesting to Change password")
         text="Verifying_Data"
@@ -57,22 +80,32 @@ def user_forgot_password(username):
         print("DATA SUCCESSFULLY VERIFIED")
         new_password = input("Enter your new password\n")
         mycursor.execute(
-        "UPDATE user_details SET password=%s where emp_id=%s AND name=%s AND security_answer=%s", (new_password,emp_id,name,security_answer))
+        "UPDATE user_details SET password=%s where emp_id=%s AND security_answer=%s", (new_password,username,security_answer))
         text_ = "Updating Password"
         progress_bar(text_)
         print("\n", end="\n")
-        print("PASWWORD SUCCESFULLY CHANGED AND UPDATED IN DATABASE\n")
+        print("PASSWORD SUCCESFULLY CHANGED AND UPDATED IN DATABASE\n")
         mydb.commit()
 
     elif(result==None):
         print("The credentials you have entered is incorrect.Try again")
-        user_forgot_password()
+        questions = [
+                        inquirer.List('value',
+                        message='\nDo you want to try logging in again?',
+                        choices=['Yes','No'],
+                        ),
+                ]
+        answer = inquirer.prompt(questions)['value']
+        if(answer=="Yes"):
+                user_forgot_helper()
+        elif(answer=="No"):
+            landing_page()
 
 
 def progress_bar(text):
     import time
     for j in range(1,101):
-            time.sleep(.02)
+            time.sleep(.003)
      
             downloading = colored(text, 'green', 'on_grey', attrs=['reverse'])
             percentage = colored(f"[{j}%]", 'blue')
@@ -139,25 +172,25 @@ def user_home(username):
         landing_page()
 
 def user_profile(username):
-    print(f"profile of {username}")
+    print(f"Profile of {username}")
     mydb = mysql.connector.connect(
         host="localhost",user="root",database="helping_hands1")
     mycursor = mydb.cursor()
     mycursor.execute(
         "SELECT emp_id, name, phone_number, date_of_birth, gender, branch_id, dept_id FROM user_details where emp_id=%s",(username,))
-    myresult = mycursor.fetchall()  
+    myresult = mycursor.fetchone()  
     l=[]
-    for values in myresult:
-            print("Employee id : ",emp_id)
-            print("Name : ",name)
-            print("Phone number : ",phone_number)
-            print("Gender : ",gender)
-            print("Date of Birth : ",date_of_birth)
-            print("Branch id : ",branch_id)
-            print("Department id : ",dept_id)   
+    #print(chalk.blue.bold(figlet_format(f"Hello {name}", font="standard")),)
+    print(f"{'Employee Id:':<30}{myresult[0]:<40}")
+    print(f"{'Name:':<30}{myresult[1]:<40}")
+    print(f"{'Phone Number:':<30}{myresult[2]:<40}")
+    print(f"{'Gender:':<30}{myresult[4]:<40}")
+    print(f"{'Date of Birth(yyyy-mm-dd):':<30}{str(myresult[3]):<40}")
+    print(f"{'Branch Id:':<30}{myresult[5]:<40}")
+    print(f"{'Department Id:':<30}{myresult[6]:<40}")   
 
-            input("\n\n\tPress Enter to go back.....")
-            user_home(username)
+    input("\n\n\tPress Enter to go back.....")
+    user_home(username)
 
 def user_dept_branch_change(username):
     os.system("cls")
@@ -257,10 +290,17 @@ def user_dept_branch_change(username):
             message="Enter the dept_id you want to work in")
     vac_jobs(new_dept_id,new_branch_id,current_branch_id,current_dept_id)
 
+def phone_validation(answers, current):
+    if(len(current)!=10 or current[0] not in [7,8,9]):
+        return False
+    else:
+        return True
+    #return True
+
+
 
 def signup():
     os.system("cls")
-    #print("coming up on sunday")
     print(chalk.blue.bold(figlet_format("SIGN UP PAGE", font="standard")))
     username = inquirer.text(message="Enter your Username/EMPID")
     mydb = mysql.connector.connect(
@@ -298,16 +338,20 @@ def signup():
             elif(answer=="No"):
                 landing_page()
         else:
-            name = input("Name : ")
-            dob = input("Date of Birth(yyyy-mm-dd) : ")
-            phone_number = input("Phone number : ")
-            #id = input("empid/username")
-            password = input("Password : ")
-            gender = input("Gender")   
-            curr_branch = input("Current branch id id you are working for : ")
-            curr_dept = input("Current department id you are working for : ")
-            mycursor.execute("INSERT INTO user_details VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
-                            (username, name, phone_number, dob, password, gender, curr_branch, curr_dept))
+            questions=[
+            inquirer.Text('name', message='Enter your name'),
+            inquirer.Text('dob',message='Enter your Date of Birth'),
+            inquirer.Text('phone_number', message='Enter your phone_number'),
+            inquirer.Text('gender',message='Enter your Gender'),
+            inquirer.Text('security_question', message='Enter your security quesion. You may require this to change your password'),
+            inquirer.Text('security_answer', message='Enter answer for the above question'),
+            inquirer.Text('curr_branch', message='Enter your current branch'),
+            inquirer.Text('curr_dept', message='Enter your current department')
+            ]
+            answers = inquirer.prompt(questions)
+            password=inquirer.password(message='Enter your password')
+            mycursor.execute("INSERT INTO user_details VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                            (username, answers['name'], answers['phone_number'], answers['dob'], password, answers['gender'], answers['curr_branch'], answers['curr_dept'], answers['security_question'], answers['security_answer']))
             mydb.commit()
             # here, reduce number of vacant jobs by 1 for the entered branch and department
             print(chalk.blue.bold.underline("\nUsername successfully registered"))

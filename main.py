@@ -138,12 +138,13 @@ def login():
         mycursor.execute(
             "SELECT * FROM user_details where emp_id=%s and password=%s", (username, password))
         myresult = mycursor.fetchone()
-        name=str(myresult[1])
+        #name=str(myresult[1])
         if myresult != None:
+            name=str(myresult[1])
             user_home(username,name)
         elif myresult == None:
             print(chalk.blue.bold.underline(
-                "\nEmployee doesn't exist / not registered"))
+                "\nWrong credentials"))
             questions = [
                         inquirer.List('value',
                         message='\nDo you want to try logging in again?',

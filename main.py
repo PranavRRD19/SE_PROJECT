@@ -118,7 +118,7 @@ def progress_bar(text):
             print(color, end="\r")
 
 
-
+ 
 def login():
     """ Display welcome message followed by a login prompt. """
     os.system("cls")

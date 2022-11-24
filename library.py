@@ -1,3 +1,5 @@
+#Importing all the libraries
+
 import inquirer
 import requests
 import sys

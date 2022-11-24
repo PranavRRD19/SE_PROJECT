@@ -7,8 +7,12 @@ from view_jobs import view_jobs
 from update_jobs import update_jobs
 
 def admin_home():
+    
+    #Clears screen
     os.system("cls")
     print(chalk.blue.bold(figlet_format("Hi Admin", font="standard")))
+    
+    #Provide admin with options to make a choice
     questions = [
                         inquirer.List('value',
                         message='Enter your choice',
@@ -16,6 +20,8 @@ def admin_home():
                         ),
                 ]
     answer = inquirer.prompt(questions)['value']
+    
+    #Call functions based on admin choice
     if(answer=="Add Employee"):
         admin_add_employee()
     elif(answer=="Add branch"):

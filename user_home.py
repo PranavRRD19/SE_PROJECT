@@ -26,6 +26,6 @@ def user_home(username, name):
     elif(answer=="Change Branch/Department"):
         user_dept_branch_change(username)
     
-    #Logging out and directing to main page
+    #Logging out and redirecting to main page
     elif(answer=='Logout'):
         landing_page()

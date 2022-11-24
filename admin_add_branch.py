@@ -30,7 +30,7 @@ def admin_add_branch():
                         message='\nDo you want to try adding a branch again?',
                         choices=['Yes','No'],
                         ),
-                ]
+                    ]
         answer = inquirer.prompt(questions)['value']
         if(answer=="Yes"):
             admin_add_branch()

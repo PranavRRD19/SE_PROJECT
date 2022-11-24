@@ -11,4 +11,4 @@ import mysql.connector
 import time
 from termcolor import colored
 from datetime import datetime
-from main1 import landing_page
+from main1 import landing_page 

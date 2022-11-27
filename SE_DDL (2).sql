@@ -1,10 +1,6 @@
 CREATE DATABASE helping_hands1;
 
-alter table Participate add constraint
-partPlay_on_delete_foreign foreign key(Player_Id) 
-references Player(Player_Id) on delete cascade;
-
-use helping_hands;
+use helping_hands1;
 CREATE TABLE admin (username char(8) not null, password varchar(30) not null);
 INSERT into admin VALUES ('1','1');
 
